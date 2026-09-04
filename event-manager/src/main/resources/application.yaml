@@ -1,6 +1,16 @@
 server:
   port: 8080
 
+jwt:
+  secret: ${JWT_SECRET:yWZcs8dOhF5V/tPkjegsDRIWGTyILdLq/+5K7M99TLNwyg5MeaQ/voaWH6HRFld/H4TUtgkCYb6r6gy2lhEbbg==}
+  expiration: ${JWT_EXPIRATION:600000}
+
+default:
+  admin:
+    login: ${DEFAULT_ADMIN_LOGIN:admin}
+    pass: ${DEFAULT_ADMIN_PASS:admin}
+    age: ${DEFAULT_ADMIN_AGE:30}
+
 spring:
   application:
     name: event-manager

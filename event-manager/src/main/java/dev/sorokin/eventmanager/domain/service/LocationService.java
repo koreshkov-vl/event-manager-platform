@@ -30,7 +30,7 @@ public class LocationService {
     public Location getLocation(Long id) {
         return locationRepository.findById(id)
                 .map(LocationMapper::toDomain)
-                .orElseThrow(() -> new LocationNotFoundException("Location not found with id: " + id));
+                .orElseThrow(() -> new LocationNotFoundException("Location not found by id: " + id));
     }
 
     public Location createLocation(Location location) {
@@ -40,7 +40,7 @@ public class LocationService {
 
     public void deleteLocation(Long id) {
         locationRepository.findById(id)
-                .orElseThrow(() -> new LocationNotFoundException("Location not found with id: " + id));
+                .orElseThrow(() -> new LocationNotFoundException("Location not found by id: " + id));
         locationRepository.deleteById(id);
     }
 
@@ -54,7 +54,7 @@ public class LocationService {
                         entity.setDescription(location.description());
                         return locationRepository.save(entity);
                 })
-                .orElseThrow(() -> new LocationNotFoundException("Location not found with id: " + id));
+                .orElseThrow(() -> new LocationNotFoundException("Location not found by id: " + id));
         return LocationMapper.toDomain(locationEntity);
     }
 }

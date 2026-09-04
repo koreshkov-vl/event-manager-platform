@@ -1,6 +1,7 @@
 package dev.sorokin.eventmanager.controller.exceptions;
 
 import dev.sorokin.eventmanager.domain.exception.LocationNotFoundException;
+import dev.sorokin.eventmanager.domain.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,9 +47,9 @@ public class ExceptionHandlers {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
-    @ExceptionHandler(LocationNotFoundException.class)
+    @ExceptionHandler({LocationNotFoundException.class, UserNotFoundException.class})
     public ResponseEntity<ErrorMessageResponse> handleNotFoundException(
-            LocationNotFoundException ex
+            Exception ex
     ) {
         var body = new ErrorMessageResponse(
                 "Not found",
