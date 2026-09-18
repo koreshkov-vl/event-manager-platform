@@ -44,7 +44,8 @@ public final class LocationMapper {
                 domain.name(),
                 domain.address(),
                 domain.capacity(),
-                domain.description()
+                domain.description(),
+                null
         );
     }
 }
