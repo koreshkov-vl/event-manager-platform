@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changesets/V0001_create_notifications_event_payloads_table.sql
+  - include:
+      file: db/changelog/changesets/V0002_create_notifications_table.sql
+  - include:
+      file: db/changelog/changesets/V0003_create_notifications_index.sql

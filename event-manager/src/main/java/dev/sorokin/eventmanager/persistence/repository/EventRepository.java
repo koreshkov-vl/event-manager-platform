@@ -26,6 +26,12 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
             "JOIN e.registrations r WHERE r.user.id = :userId")
     List<EventEntity> findEventRegistrationsByUserId(Long userId);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM EventEntity e WHERE e.status = :status AND e.startAt <= :now")
+    List<EventEntity> findEventsToStart(
+            @Param("status") EventStatus status,
+            @Param("now") OffsetDateTime now);
+
     @Modifying(clearAutomatically = true)
     @Query("UPDATE EventEntity e SET e.status = :newStatus " +
             "WHERE e.status = :oldStatus AND e.startAt <= :now")
@@ -34,6 +40,17 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
             @Param("newStatus") EventStatus newStatus,
             @Param("now") OffsetDateTime now
     );
+
+    @Query(value = """
+                SELECT * FROM events
+                WHERE status = :status
+                AND start_at + (duration_minutes * INTERVAL '1 minute') <= :now
+                FOR UPDATE SKIP LOCKED
+            """,
+            nativeQuery = true)
+    List<EventEntity> findFinishEvents(
+            @Param("status") String status,
+            @Param("now") OffsetDateTime now);
 
     @Modifying(clearAutomatically = true)
     @Query(

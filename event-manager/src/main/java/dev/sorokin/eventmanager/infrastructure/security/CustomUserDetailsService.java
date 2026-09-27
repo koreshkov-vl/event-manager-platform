@@ -4,7 +4,6 @@ import dev.sorokin.eventmanager.domain.exception.UserNotFoundException;
 import dev.sorokin.eventmanager.persistence.entity.UserEntity;
 import dev.sorokin.eventmanager.persistence.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,7 +25,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity userEntity = userRepository.findByLogin(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found by login: " + username));
 
-        return new User(
+        return new AuthUser(
+            userEntity.getId(),
             userEntity.getLogin(),
             userEntity.getPass(),
             List.of(new SimpleGrantedAuthority(userEntity.getRole().toString()))
