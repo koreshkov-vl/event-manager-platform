@@ -21,6 +21,18 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     ports:
       - "9092:9092"
+    command: >
+      bash -c "
+      /etc/confluent/docker/run &
+      echo 'Waiting for Kafka to be ready...' &&
+      cub kafka-ready -b localhost:9092 1 60 &&
+      echo 'Creating topics...' &&
+      kafka-topics --bootstrap-server localhost:9092 --create --if-not-exists --topic event-changes --partitions 3 --replication-factor 1 &&
+      kafka-topics --bootstrap-server localhost:9092 --create --if-not-exists --topic event-changes-dlt --partitions 3 --replication-factor 1 &&
+      kafka-configs --bootstrap-server localhost:9092 --alter --entity-type topics --entity-name event-changes-dlt --add-config retention.ms=604800000 &&
+      echo 'Topics created. Kafka is running.' &&
+      wait
+      " 

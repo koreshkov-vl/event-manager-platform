@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/changesets/V0003_create_events_table.sql
   - include:
       file: db/changelog/changesets/V0004_create_registrations_table.sql
+  - include:
+      file: db/changelog/changesets/V0005_create_outbox_messages_table.sql

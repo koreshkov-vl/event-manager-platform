@@ -1,13 +1,11 @@
-package dev.sorokin.eventmanager.infrastructure.service;
+package dev.sorokin.eventnotificator.infrastructure.service;
 
-import dev.sorokin.eventmanager.domain.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -19,32 +17,18 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
-
-    public String generateToken(User user) {
-        Date now = new Date();
-        Date expirationDate = new Date(now.getTime() + expiration);
-
-        return Jwts.builder()
-                .subject(user.login())
-                .claim("id", user.id())
-                .claim("role", user.role())
-                .issuedAt(now)
-                .expiration(expirationDate)
-                .signWith(getSigningKey())
-                .compact();
-    }
-
-    public String extractLogin(String token) {
+    public UserFromJwt extractUserFromJwt(String token) {
         Claims claims = parseClaims(token);
-        return claims.getSubject();
+        return new UserFromJwt(
+                claims.getSubject(),
+                claims.get("id", Long.class),
+                claims.get("role", String.class)
+        );
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token) {
         try {
-            String login = extractLogin(token);
-            return login.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            return !isTokenExpired(token);
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }

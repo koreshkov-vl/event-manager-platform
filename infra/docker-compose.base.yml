@@ -17,6 +17,7 @@ services:
       retries: 5
     volumes:
       - event_manager_pg_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
 
 volumes:
   event_manager_pg_data:
