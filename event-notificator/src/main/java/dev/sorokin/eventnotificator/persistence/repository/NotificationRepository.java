@@ -14,7 +14,7 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<NotificationEntity, Long> {
 
     @Modifying
-    @Query("UPDATE NotificationEntity n SET n.isRead = true, n.readAt = :readAt WHERE n.userId = :userId AND n.id IN :ids")
+    @Query("UPDATE NotificationEntity n SET n.isRead = true, n.readAt = :readAt WHERE n.userId = :userId AND n.isRead = false AND n.id IN :ids")
     int markAsRead(
             @Param("ids") List<Long> ids,
             @Param("userId") Long userId,
@@ -26,4 +26,6 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
     @Modifying
     @Query("DELETE FROM NotificationEntity n WHERE n.isRead = true AND n.readAt < :cutoff")
     int deleteReadOlderThan(@Param("cutoff") LocalDateTime cutoff);
+
+    long countByUserIdAndIsReadFalse(@Param("userId") Long userId);
 }
