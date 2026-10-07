@@ -7,6 +7,7 @@ import dev.sorokin.eventmanager.persistence.repository.RegistrationRepository;
 import dev.sorokin.kafka.dto.ChangeItem;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,14 +21,17 @@ public class StatusUpdater {
     private final EventRepository eventRepository;
     private final RegistrationRepository registrationRepository;
     private final EventOutboxSaver eventOutboxSaver;
+    private final CacheManager cacheManager;
 
     public StatusUpdater(
             EventRepository eventRepository,
             RegistrationRepository registrationRepository,
-            EventOutboxSaver eventOutboxSaver) {
+            EventOutboxSaver eventOutboxSaver,
+            CacheManager cacheManager) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.eventOutboxSaver = eventOutboxSaver;
+        this.cacheManager = cacheManager;
     }
 
     @Scheduled(cron = "${event.status.cron}")
@@ -36,6 +40,9 @@ public class StatusUpdater {
         log.debug("start updating...");
 
         var eventsStarted = eventRepository.findEventsToStart(EventStatus.WAIT_START, OffsetDateTime.now());
+
+        var cache = cacheManager.getCache("events");
+
         if (!eventsStarted.isEmpty()) {
             int cnt = eventRepository.startEvents(
                     EventStatus.WAIT_START,
@@ -49,6 +56,13 @@ public class StatusUpdater {
                     new ChangeItem("status", EventStatus.WAIT_START, EventStatus.STARTED));
             eventsStarted.forEach(
                  event ->  {
+                     if (cache != null) {
+                         try {
+                             cache.evict("id:" + event.getId());
+                         } catch (Exception e) {
+                             log.warn("Failed to evict cache for event {}", event.getId(), e);
+                         }
+                     }
                      var subscribers = getSubscribers(event.getId());
                      if (!subscribers.isEmpty()) {
                          eventOutboxSaver.save(
@@ -77,6 +91,13 @@ public class StatusUpdater {
 
             eventsFinished.forEach(
                     event ->  {
+                        if (cache != null) {
+                            try {
+                                cache.evict("id:" + event.getId());
+                            } catch (Exception e) {
+                                log.warn("Failed to evict cache for event {}", event.getId(), e);
+                            }
+                        }
                         var subscribers = getSubscribers(event.getId());
                         if (!subscribers.isEmpty()) {
                             eventOutboxSaver.save(

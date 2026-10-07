@@ -1,8 +1,6 @@
 package dev.sorokin.eventnotificator.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.sorokin.eventnotificator.controller.dto.ChangeItem;
 import dev.sorokin.eventnotificator.controller.dto.NotificationPayload;
@@ -22,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Slf4j
@@ -32,6 +31,7 @@ public class NotificationService {
     private final UserGetter userGetter;
     private final NotificationRepository notificationRepository;
     private final NotificationEventPayloadRepository notificationEventPayloadRepository;
+    private final NotificationCounterService notificationCounterService;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -39,6 +39,7 @@ public class NotificationService {
     public void markNotificationsAsRead(@NotEmpty List<Long> ids) {
         var userId = userGetter.getUserIdFromJwt();
         notificationRepository.markAsRead(ids, userId, LocalDateTime.now());
+        notificationCounterService.updateRead(userId);
     }
 
     @Transactional(readOnly = true)
@@ -100,8 +101,10 @@ public class NotificationService {
                 payload
             );
             notifications.add(notification);
+            notificationCounterService.incUnread(subscriberId, 1L);
         }
         notificationRepository.saveAll(notifications);
+        new HashMap<>();
     }
 
     private static UnreadNotificationDto notificationToDto(NotificationEntity entity) {

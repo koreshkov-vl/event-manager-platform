@@ -22,6 +22,8 @@ import dev.sorokin.kafka.dto.ChangeItem;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +69,7 @@ public class EventService {
         return EventMapper.toDomain(savedEvent);
     }
 
+    @CacheEvict(cacheNames = "events", key = "'id:' + #eventId")
     @Transactional
     public void deleteEvent(Long eventId) {
         var event = eventRepository.findById(eventId)
@@ -96,6 +99,7 @@ public class EventService {
         }
     }
 
+    @Cacheable(cacheNames = "events", key = "'id:' + #eventId")
     @Transactional(readOnly = true)
     public Event getEvent(Long eventId) {
         return eventRepository.findById(eventId)
@@ -103,6 +107,7 @@ public class EventService {
                 .orElseThrow(() -> new EventNotFoundException("Event not found by id: " + eventId));
     }
 
+    @CacheEvict(cacheNames = "events", key = "'id:' + #eventId")
     @Transactional
     public Event updateEvent(@NotNull Long eventId, @Valid RequestEventDto request) {
         var event = eventRepository.findById(eventId)
